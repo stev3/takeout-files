@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body { font: 12px Arial;}
+
+path { 
+  stroke: steelblue;
+  stroke-width: 2;
+  fill: none;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: grey;
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.tooltip {
+  position: absolute;
+  width: 200px;
+  height: 28px;
+  pointer-events: none;
+  color: black;
+  font-weight: bold;
+}
+
+.totalQueries {
+  position: absolute;
+  width: 200px;
+  height: 28px;
+  pointer-events: none;
+  color: black;
+  font-weight: bold;
+}
+
+.startDate {
+  position: absolute;
+  width: 200px;
+  height: 28px;
+  pointer-events: none;
+  color: black;
+  font-weight: bold;
+}
+
+.datetip {
+  position: absolute;
+  width: 200px;
+  height: 28px;
+  pointer-events: none;
+  color: black;
+  font-weight: bold;
+}
+
+.queries {
+  position: absolute;
+  width: 1200px;
+  height: 200px;
+  pointer-events: none;
+  color: black;
+  font-weight: bold;
+}
+
+</style>
+<body>
+
+<script src="//d3js.org/d3.v4.min.js"></script>
+
+<script>
+
+var margin = {top: 30, right: 20, bottom: 30, left: 50},
+  width = 1400 - margin.left - margin.right,
+  height = 600 - margin.top - margin.bottom;
+
+var parseDate = d3.timeParse("%Y/%m/%d");
+
+var x = d3.scaleTime().range([0, width]);
+var y = d3.scaleLinear().range([height, 0]);
+
+var xAxis = d3.axisBottom(x)
+  .ticks(10);
+var yAxis = d3.axisLeft(y)
+  .ticks(5);
+
+var valueline = d3.line()
+  .x(function(d) { return x(d.date); })
+  .y(function(d) { return y(d.searches); });
+    
+var svg = d3.select("body")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", 
+      "translate(" + margin.left + "," + margin.top + ")");
+
+var totalQueries = d3.select("body").append("div")
+  .attr("class", "totalQueries");
+
+var startDate = d3.select("body").append("div")
+  .attr("class", "startDate");
+
+var tooltip = d3.select("body").append("div")
+  .attr("class", "tooltip");
+
+var datetip = d3.select("body").append("div")
+  .attr("class", "datetip")
+  .style("opacity", 0);
+
+var queries = d3.select("body").append("div")
+  .attr("class", "queries")
+
+var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+var timeFormat = d3.timeFormat('%B %d, %Y');
+
+d3.csv("data.csv", function(error, data) {
+  var searches = 0
+
+  data.forEach(function(d) {
+    d.date = parseDate(d.date);
+    d.searches = +d.searches;
+    searches += d.searches
+  });
+
+  x.domain(d3.extent(data, function(d) { return d.date; }));
+  y.domain([0, d3.max(data, function(d) { return d.searches; })]);
+
+  svg.selectAll("dot")
+    .data(data)
+    .enter().append("circle")
+    .attr("fill",function(d,i){return color(i);})
+    .attr("r", 2.5)
+    .attr("cx", function(d) { return x(d.date); })
+    .attr("cy", function(d) { return y(d.searches); })
+    .on("mouseover", function(d) {
+      tooltip.html("Daily Queries: " + d.searches)
+        .style("left", "100px")
+        .style("top", "675px");
+      datetip.transition()
+        .duration(100)
+        .style("opacity", .9);
+      datetip.html(timeFormat(d.date))
+        .style("left", (d3.event.pageX + 5) + "px")
+        .style("top", (d3.event.pageY - 28) + "px");
+      queries.html(d.queries)
+        .style("left", "100px")
+        .style("top", "700px");
+    })
+    .on("mouseout", function(d) {
+      datetip.transition()
+        .duration(500)
+        .style("opacity", 0);
+    });
+
+  svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+  svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis);
+
+  startDate.html("Start Date: " + timeFormat(data[0].date))
+    .style("left", "100px")
+    .style("top", "625px");
+
+  totalQueries.html("Total Searches: " + searches)
+    .style("left", "100px")
+    .style("top", "650px");
+
+});
+
+</script>
+</body>
