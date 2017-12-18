@@ -5,23 +5,21 @@ import os
 import json
 import datetime
 import operator
-import matplotlib.pyplot as plt
 
-
-if not os.path.isfile('./searches/all_searches.json'):
+if not os.path.isfile('./Searches/all_searches.json'):
   result = []
-  for f in os.listdir('./searches'):
+  for f in os.listdir('./Searches'):
     if f.endswith('.json'):
-      path = './searches/' + f
+      path = './Searches/' + f
       with open(path, "rb") as infile:
           result.append(json.load(infile))
 
-  with open("./searches/all_searches.json", "wb") as outfile:
+  with open("./Searches/all_searches.json", "wb") as outfile:
     json.dump(result, outfile)
 
 total_searches = 0
 dates_and_queries = {}
-with open('./searches/all_searches.json') as f:
+with open('./Searches/all_searches.json') as f:
   data = json.load(f)
   for i in data:
     if i.get('event'):
